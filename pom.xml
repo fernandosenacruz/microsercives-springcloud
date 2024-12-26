@@ -18,7 +18,8 @@
 
     <modules>
         <module>eurekaserver</module>
-        <!--<module>mscards</module>
+        <module>mscards</module>
+        <!--
         <module>msclients</module>
         <module>mscloudgateway</module>
         <module>mscreditappaisal</module>-->
