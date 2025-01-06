@@ -1,0 +1,59 @@
+services:
+  parentpom:
+    image: maven:3.9.4-eclipse-temurin-21
+    volumes:
+      - maven-repo:/root/.m2
+    build:
+      context: ./
+    command: mvn clean install -DskipTests
+    networks:
+      - ms-network
+
+  eurekaserver:
+    build:
+      context: ./eurekaserver
+    volumes:
+      - maven-repo:/root/.m2
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_SECURITY_USER_NAME: ms-eureka-user
+      SPRING_SECURITY_USER_PASSWORD: ximira123
+    depends_on:
+      - parentpom
+    networks:
+      - ms-network
+
+  mscards:
+    build:
+      context: ./mscards
+    volumes:
+      - maven-repo:/root/.m2
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://ms-eureka-user:ximira123@eurekaserver:8761/eureka
+    depends_on:
+      - eurekaserver
+    networks:
+      - ms-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - ms-network
+
+volumes:
+  maven-repo:
+
+networks:
+  ms-network:
+    driver: bridge
